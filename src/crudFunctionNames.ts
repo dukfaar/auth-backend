@@ -1,0 +1,1 @@
+export const crudFunctionNames = ['create', 'read', 'update', 'delete']
