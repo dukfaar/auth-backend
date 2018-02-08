@@ -13,19 +13,19 @@
   "author": "dukfaar <dukfaar@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^9.3.0",
+    "@types/node": "^9.4.2",
     "apollo-link": "latest",
     "bluebird": "latest",
     "body-parser": "latest",
-    "dataloader": "latest",
+    "dataloader": "^1.4.0",
     "express": "latest",
     "express-graphql": "latest",
     "express-oauth-server": "latest",
-    "graphql": "latest",
-    "graphql-tools": "^2.18.0",
+    "graphql": "^0.13.0",
+    "graphql-tools": "^2.20.2",
     "lodash": "latest",
-    "mongoose": "^5.0.1",
-    "typescript": "latest"
+    "mongoose": "^5.0.3",
+    "typescript": "^2.7.1"
   },
   "devdependencies": {}
 }
