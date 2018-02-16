@@ -10,7 +10,7 @@ const initialData = {
         { username: 'admin', password: 'secretpassword', email: 'dukfaar@gmail.com' },
         { username: 'dukfaar-cloud-internal', password: 'this password will actually never be used', email: 'dukfaar@gmail.com' }
     ],
-    roles: _.map([ 'admin' ], rName => ({name: 'admin'})),
+    roles: _.map([ 'admin' ], rName => ({name: rName})),
     crudTypes: ['client', 'user', 'role', 'permission', 'token']
 }
 
