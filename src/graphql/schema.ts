@@ -199,10 +199,8 @@ const resolvers = {
             return Token.find().select(getProjection(options)).lean().exec()
         },
         permissions: (root, params, source, options) => {
-            console.log(source)
             return getCurrentUserPermissions(source.token)
             .then(userPermissions => {
-                console.log(userPermissions)
                 if(_.find(userPermissions,p => p.name === 'permission read')) {
                     return Permission.find().select(getProjection(options)).lean().exec()
                 } else {
