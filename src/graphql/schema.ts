@@ -122,6 +122,28 @@ function updateType(type, findBy, params): Promise {
     })
 }
 
+function getCurrentUserPermissions(token) {
+    if(token) {
+        return User.findOne({_id: token.userId}).select('roles').lean().exec()
+        .then(user => user.roles)        
+        .then(roleIds => {
+            return Role.find({_id: roleIds}).select('permissions').lean().exec()
+        })
+        .then(roles => {
+            return _.uniq(_.flatMap(roles, role => role.permissions))
+        })
+        .then(permissionIds => {
+            return Permission.find({_id: permissionIds}).select('name').lean().exec()
+        })
+    } else {
+        return Promise.resolve([])
+    }
+}
+
+class PermissionError extends Error {
+    message = this.message || 'Permission is missing'
+}
+
 const resolvers = {
     User: {
         tokens: (parent, params, context, options) => {
@@ -177,7 +199,17 @@ const resolvers = {
             return Token.find().select(getProjection(options)).lean().exec()
         },
         permissions: (root, params, source, options) => {
-            return Permission.find().select(getProjection(options)).lean().exec()
+            console.log(source)
+            return getCurrentUserPermissions(source.token)
+            .then(userPermissions => {
+                console.log(userPermissions)
+                if(_.find(userPermissions,p => p.name === 'permission read')) {
+                    return Permission.find().select(getProjection(options)).lean().exec()
+                } else {
+                    throw new PermissionError()
+                }
+            })
+            
         },
         roles: (root, params, source, options) => {
             return Role.find().select(getProjection(options)).lean().exec()

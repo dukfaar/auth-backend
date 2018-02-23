@@ -12,7 +12,6 @@ import { createCrudPermissionsForType } from './util'
 import { crudFunctionNames } from './crudFunctionNames'
 
 mongoose.connect('mongodb://db/auth', {
-	useMongoClient: true
 })
 
 function initType(type, data, identifyBy) {
