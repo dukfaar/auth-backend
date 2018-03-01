@@ -8,7 +8,7 @@
     "start": "node dist",
     "build-docker": "docker build . -t dukfaar/auth-backend",
     "tsc": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -r ts-node/register src/**/*.test.ts"
   },
   "author": "dukfaar <dukfaar@gmail.com>",
   "license": "ISC",
@@ -23,9 +23,15 @@
     "express-oauth-server": "latest",
     "graphql": "^0.13.0",
     "graphql-tools": "^2.20.2",
+    "node-cache": "latest",
     "lodash": "latest",
     "mongoose": "^5.0.3",
-    "typescript": "^2.7.1"
+    "typescript": "^2.7.1",
+    "ts-node": "latest"
   },
-  "devdependencies": {}
+  "devDependencies": {
+    "@types/mocha": "latest",
+    "mocha": "latest",
+    "chai": "latest"
+  }
 }

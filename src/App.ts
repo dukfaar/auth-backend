@@ -3,6 +3,8 @@ import * as bodyParser from 'body-parser'
 import * as expressOAuthServer from 'express-oauth-server'
 import * as dataloader from 'dataloader'
 
+import NodeCache from 'node-cache'
+
 var oauthServer = require('oauth2-server')
 var Request = oauthServer.Request
 var Response = oauthServer.Response
@@ -10,12 +12,22 @@ var Response = oauthServer.Response
 import * as Model from './oauthModelUtil'
 import './db'
 
+import * as _ from 'lodash'
+
 import { Schema } from './graphql/schema'
 
 import * as graphqlHTTP from 'express-graphql'
 
+import { User } from './model/User'
+import { Role } from './model/Role'
+import { Permission } from './model/Permission'
+
+import fetchFromCache from './fetchFromCache'
+
 export class App {
 	private expressApp
+	private userCache
+	private userPermissionCache
 	private port = process.env.PORT || 3000
 
 	private oauthServer
@@ -47,6 +59,9 @@ export class App {
 		})
 
 		this.expressApp.options('*', (req, res) => { res.send('OK') })
+
+		this.userCache = new NodeCache({stdTTL: 100, checkPeriod: 120})
+		this.userPermissionCache = new NodeCache({stdTTL: 100, checkPeriod: 120})
 	}
  
 	public start() {
@@ -55,20 +70,30 @@ export class App {
 		this.listen()
 	}
 
-	private loadRoutes():void {
+	
+	private async loadRoutes() {
 		console.log('loading routes')
 
 		this.expressApp.post('/oauth/token', this.oauthServer.token())
 
 		this.expressApp.use('/', (req, res, next) => {
 			this.oauthServer.server.authenticate(new Request(req), new Response(res))
-			.then(token => {
+			.then(async token => {
 				req.token = token
+				req.user = await fetchFromCache(this.userCache, token.userId, key => User.findOne({_id: token.userId}).select('roles').lean().exec())
+
+				req.userPermissions = await fetchFromCache(this.userPermissionCache, token.userId, async key => {
+					let roles = await Role.find({_id: req.user.roles }).select('permissions').lean().exec()
+					let permissionIds = _.uniq(_.flatMap(roles, role => role.permissions))
+					return await Permission.find({_id: permissionIds}).select('name').lean().exec()
+				})
+
 				next()
 			})
 			.catch(error => {
 				req.token = null
 				req.authError = error
+				req.userPermissions = []
 				next()
 			})
 		},
