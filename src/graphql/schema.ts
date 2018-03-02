@@ -15,27 +15,8 @@ import {
 
 import typeDefs from './typedefs'
 
-function createType(type, findBy, params): Promise {
-    return type.findOne(findBy).lean().exec()
-    .then(instance => {
-        return instance 
-        ?Promise.reject("Can not create new instance")
-        :_.extend(new type(), params).save()  
-    })
-}
-
-function updateType(type, findBy, params): Promise {
-    return type.findOne(findBy).exec()
-    .then(instance => {
-        return instance
-        ?_.extend(instance, params).save()   
-        :Promise.reject("Can not find instance")                 
-    })
-}
-
-class PermissionError extends Error {
-    message = this.message || 'Permission is missing'
-}
+import queryResolvers from './queryResolvers'
+import mutationResolvers from './mutationResolvers' 
 
 const resolvers = {
     User: {
@@ -74,85 +55,9 @@ const resolvers = {
         }
     },
 
-    Query: {
-        clients: (root, params, source, options) => {
-            return Client.find().select(getProjection(options)).lean().exec()
-        },
-        users: (root, params, source, options) => {
-            return User.find().select(getProjection(options)).lean().exec()
-        },
-        me: (root, params, source, options) => {
-            if(source.token && source.token.userId) {
-                return User.findOne({ _id: source.token.userId }).select(getProjection(options)).lean().exec()
-            } else {
-                throw "valid accesstoken is required"
-            }
-        },
-        tokens: (root, params, source, options) => {
-            return Token.find().select(getProjection(options)).lean().exec()
-        },
-        permissions: (root, params, source, options) => {
-            if(_.find(source.userPermissions,p => p.name === 'permission read')) {
-                return Permission.find().select(getProjection(options)).lean().exec()
-            } else {
-                throw new PermissionError()
-            }           
-        },
-        roles: (root, params, source, options) => {
-            return Role.find().select(getProjection(options)).lean().exec()
-        },
-    },
+    Query: queryResolvers,
 
-    Mutation: {
-        createClient: (value, params) => {
-            return createType(Client, {clientId: params.clientId}, params)      
-        },
-    
-        updateClient:  (value, params) => {
-            return updateType(Client, {clientId: params.clientId}, params)                
-        },
-
-        deleteClient: (value, {clientId}) => {
-            return Client.remove({clientId: clientId}).exec()
-        },
-
-        createUser: (value, params) => {
-            return createType(User, {username: params.username}, params)   
-        },
-    
-        updateUser:  (value, params) => {
-            return updateType(User, {username: params.username}, params.user)                 
-        },
-
-        deleteUser: (value, {username}) => {
-            return User.remove({username: username}).exec()
-        },
-
-        createPermission: (value, params) => {
-            return createType(Permission, {name: params.name}, params)      
-        },
-
-        updatePermission: (value, params) => {
-            return updateType(Permission, {name: params.name}, params.permission)      
-        },
-
-        deletePermission: (value, {name}) => {
-            return Permission.remove({name: name}).exec()
-        },
-
-        createRole: (value, params) => {
-            return createType(Role, {name: params.name}, params)      
-        },
-    
-        updateRole:  (value, params) => {
-            return updateType(Role, {name: params.name}, params.role)                
-        },
-
-        deleteRole: (value, {name}) => {
-            return Role.remove({name: name}).exec()
-        },
-
-    }  
+    Mutation: mutationResolvers
 }
 
 export const Schema = makeExecutableSchema({
