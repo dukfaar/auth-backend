@@ -11,7 +11,9 @@ mongoose.Promise = bluebirdPromise
 import { createCrudPermissionsForType } from './util'
 import { crudFunctionNames } from './crudFunctionNames'
 
-mongoose.connect('mongodb://db/auth', {
+let portString = process.env.DB_PORT ? ':' + process.env.DB_PORT : ''
+
+mongoose.connect(`mongodb://${process.env.DB_HOST || 'db'}${portString}/auth`, {
 })
 
 function initType(type, data, identifyBy) {
