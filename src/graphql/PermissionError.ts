@@ -1,3 +1,6 @@
 export default class PermissionError extends Error {
-    message = this.message || 'Permission is missing'
+    constructor(permission: string) {
+        super()
+        this.message = `Permission '${permission}' is missing`
+    }
 }

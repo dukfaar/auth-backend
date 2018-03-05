@@ -3,7 +3,7 @@ import * as bodyParser from 'body-parser'
 import * as expressOAuthServer from 'express-oauth-server'
 import * as dataloader from 'dataloader'
 
-import NodeCache from 'node-cache'
+import * as NodeCache from 'node-cache'
 
 var oauthServer = require('oauth2-server')
 var Request = oauthServer.Request
@@ -53,8 +53,9 @@ export class App {
 		this.expressApp.use('*', (req, res, next) => {
 			res.header('Access-Control-Allow-Origin', '*')
 			res.header('Access-Control-Allow-Credentials', true)
-			res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+			res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PUT')
 			res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+			res.header('Access-Control-Max-Age', '600')
 			next()
 		})
 
@@ -94,6 +95,7 @@ export class App {
 				req.token = null
 				req.authError = error
 				req.userPermissions = []
+				req.user = {}
 				next()
 			})
 		},
@@ -101,7 +103,10 @@ export class App {
 				schema: Schema,
 				graphiql: true, //Set to false if you don't want graphiql enabled,
 				context: {
-					token: req.token
+					authError: req.authError,
+					token: req.token,
+					user: req.user,
+					userPermissions: req.userPermissions
 				}
 			}))
 		)
