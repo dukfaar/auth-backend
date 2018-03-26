@@ -6,7 +6,7 @@ import {
     Role
 } from '../model'
 
-import getProjection from './getProjection'
+import getProjection from 'backend-utilities/getProjection'
 
 import withAuth from './withAuth'
 
