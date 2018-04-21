@@ -6,7 +6,8 @@
     "sourceMap": true,
     "lib": [
       "esnext",
-      "esnext.asynciterable"
+      "esnext.asynciterable",
+      "dom"
     ],
   },
   "files": [
@@ -16,7 +17,6 @@
     "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
     "src/**/*.test.ts"
   ]
 }

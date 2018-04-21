@@ -1,13 +1,16 @@
 FROM node:alpine
 ARG DB_HOST
 ARG DB_PORT
+ARG PORT
 
 ENV DB_HOST=$DB_HOST
 ENV DB_PORT=$DB_PORT
 
-ENV PORT 3000
+ENV PORT=$PORT
 
 EXPOSE 3000
+
+RUN npm set registry https://npm-registry.dukfaar.com
 
 COPY package*.json ./
 RUN npm install --production

@@ -61,8 +61,8 @@ export class App {
 
 		this.expressApp.options('*', (req, res) => { res.send('OK') })
 
-		this.userCache = new NodeCache({stdTTL: 100, checkPeriod: 120})
-		this.userPermissionCache = new NodeCache({stdTTL: 100, checkPeriod: 120})
+		this.userCache = new NodeCache({stdTTL: 100, checkperiod: 120})
+		this.userPermissionCache = new NodeCache({stdTTL: 100, checkperiod: 120})
 	}
  
 	public start() {
