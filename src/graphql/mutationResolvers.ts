@@ -2,6 +2,11 @@ import * as Promise from 'bluebird'
 import * as _ from 'lodash'
 
 import {
+    mongooseCreateType as createType,
+    mongooseUpdateType as updateType 
+  } from 'backend-utilities'
+
+import {
     User,
     Client,
     Token,
@@ -10,24 +15,6 @@ import {
 } from '../model'
 
 import withAuth from './withAuth'
-
-function createType(type, findBy, params): Promise {
-    return type.findOne(findBy).lean().exec()
-    .then(instance => {
-        return instance 
-        ?Promise.reject("Can not create new instance")
-        :_.extend(new type(), params).save()  
-    })
-}
-
-function updateType(type, findBy, params): Promise {
-    return type.findOne(findBy).exec()
-    .then(instance => {
-        return instance
-        ?_.extend(instance, params).save()   
-        :Promise.reject("Can not find instance")                 
-    })
-}
 
 export default {
     createClient: withAuth('client create', (value, params) => createType(Client, {clientId: params.clientId}, params)),  

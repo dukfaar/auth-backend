@@ -3,7 +3,7 @@ import { makeExecutableSchema } from 'graphql-tools'
 import * as _ from 'lodash'
 import * as Promise from 'bluebird'
 
-import getProjection from './getProjection'
+import {getProjection} from 'backend-utilities'
 
 import {
     User,
