@@ -47,5 +47,12 @@ export default {
         let response = new Response({})
 
         return getOAuthServer().token(request, response, {})
+    },
+
+    userByAccessToken: (root, params, source, options) => {
+        return Token.findOne({ accessToken: params.accessToken }).select('userId').lean().exec()
+        .then(token => {
+            return User.findOne({_id: token.userId}).select(getProjection(options)).lean().exec()
+        })
     }
 }
