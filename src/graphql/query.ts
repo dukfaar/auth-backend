@@ -6,5 +6,7 @@ type Query {
     permissions: [Permission]
     roles: [Role]
     me: User
+
+    login(username: String!, password: String!, clientId: String!, clientSecret: String!): Token
 }
 `
