@@ -18,7 +18,8 @@ import {
     requirePermission, 
     Operation,
     RelayHelper,
-    RelayHelperFactory
+    RelayHelperFactory,
+    getProjectionForPath
 } from 'backend-utilities'
 
 import withAuth from './withAuth'
@@ -95,6 +96,15 @@ export default {
         let response = new Response({})
 
         return getOAuthServer().token(request, response, {})
+    },
+
+    user: async(root, params, source,options) => {
+        let projection = getProjection(options)
+        requireTypePermissions(source.userPermissions, 'user', projection, Operation.READ)
+
+        if(params.id) {
+            return User.findOne({_id: params.id}).select(projection).lean().exec()
+        } else throw "Unknown Query Parameters"
     },
 
     userByAccessToken: async (root, params, source, options) => {

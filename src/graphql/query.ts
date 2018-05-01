@@ -12,5 +12,7 @@ type Query {
     refresh(refreshToken: String!, clientId: String!, clientSecret: String!): Token
 
     userByAccessToken(accessToken: String!): User
+
+    user(id: ID!): User
 }
 `
