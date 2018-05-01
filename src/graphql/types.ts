@@ -1,39 +1,70 @@
+function createEdge(typename: string) {
+    return `type ${typename}Edge { cursor:String! node:${typename} }\n`
+}
+
+function createConnection(typename: string) {
+    return `type ${typename}Connection { edges:[${typename}Edge] pageInfo:PageInfo! }\n`
+}
+
+function relayTypes(typename: string) {
+    return createEdge(typename) + ' ' + createConnection(typename)
+}
+
 export default `
-type Client {
-    _id: String!
+interface Node {
+    _id: ID!
+}
+
+type PageInfo {
+    hasNextPage: Boolean
+    hasPreviousPage: Boolean
+    startCursor: String
+    endCursor: String
+}
+
+type Client implements Node {
+    _id: ID!
     clientId: String
     clientSecret: String
     grants: [String]
 
-    tokens: [Token]
+    tokens(first: Int, last: Int, after: ID, before: ID): TokenConnection
 }
 
-type Permission {
-    _id: String!
+${relayTypes('Client')}
+
+type Permission implements Node {
+    _id: ID!
     name: String!
 }
 
-type Role {
-    _id: String!
+${relayTypes('Permission')}
+
+type Role implements Node {
+    _id: ID!
     name: String!
 
-    permissions: [Permission]
+    permissions(first: Int, last: Int, after: ID, before: ID): PermissionConnection
 }
 
-type User {
-    _id: String!
+${relayTypes('Role')}
+
+type User implements Node {
+    _id: ID!
     username: String
     email: String
 
-    tokens: [Token]
+    tokens(first: Int, last: Int, after: ID, before: ID): TokenConnection
 
-    roles: [Role]
+    roles(first: Int, last: Int, after: ID, before: ID): RoleConnection
 
-    permissions: [Permission]
+    permissions(first: Int, last: Int, after: ID, before: ID): PermissionConnection
 }
 
-type Token {
-    _id: String!
+${relayTypes('User')}
+
+type Token implements Node  {
+    _id: ID!
     clientId: String
     client: Client
     userId: String
@@ -43,4 +74,6 @@ type Token {
     accessTokenExpiresAt: Date
     refreshTokenExpiresAt: Date
 }
+
+${relayTypes('Token')}
 `

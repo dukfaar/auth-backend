@@ -6,6 +6,7 @@ import * as dataloader from 'dataloader'
 import * as NodeCache from 'node-cache'
 
 import './db'
+import initDb from './initDb'
 
 import * as _ from 'lodash'
 
@@ -51,6 +52,8 @@ export class App {
 
 		this.userCache = new NodeCache({stdTTL: 100, checkperiod: 120})
 		this.userPermissionCache = new NodeCache({stdTTL: 100, checkperiod: 120})
+
+		initDb()
 	}
  
 	public start() {
@@ -68,11 +71,28 @@ export class App {
 				new Response(res)
 			)
 			.then(async token => {	
-				req.token = token				
+				req.token = token
+
+				req.user = await fetchFromCache(this.userCache, token.userId, 
+					key => User.findOne({_id: token.userId}).select('roles').lean().exec()
+				)
+
+				req.userPermissions = await fetchFromCache(this.userPermissionCache, token.userId, 
+					async key => {
+						let roles = await Role.find({_id: req.user.roles }).select('permissions').lean().exec()
+						let permissionIds = _.uniq(_.flatMap(roles, role => role.permissions))
+						let permissionObjects = await Permission.find({_id: permissionIds}).select('name').lean().exec()
+						return _.map(permissionObjects, permission => permission.name)
+					}
+				)
+
 				next()
 			})
 			.catch(error => {
-				req.token = null
+				req.token = undefined
+				req.authError = error
+				req.userPermissions = []
+				req.user = {}
 				next()
 			})
 		},
@@ -81,6 +101,9 @@ export class App {
 				graphiql: true, //Set to false if you don't want graphiql enabled,
 				context: {
 					token: req.token,
+					authError: req.authError,
+					user: req.user,
+					userPermissions: req.userPermissions
 				}
 			}))
 		)

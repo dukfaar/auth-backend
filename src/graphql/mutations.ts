@@ -10,10 +10,12 @@ type Mutation {
 
     createPermission(name: String!): Permission
     updatePermission(name: String!, permission: PermissionInput): Permission
-    deletePermission(name: String!): Permission
+    deletePermissionByName(name: String!): Permission
 
     createRole(name: String!): Role
     updateRole(name: String!, role: RoleInput): Role
     deleteRole(name: String!): Role
+
+    registerTypeForPermissions(name: String!, fields: [String]!): [Permission]
 }
 `

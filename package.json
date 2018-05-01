@@ -14,26 +14,28 @@
   "author": "dukfaar <dukfaar@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^9.6.0",
     "apollo-link": "^1.2.1",
-    "backend-utilities": "latest",
-    "bluebird": "latest",
+    "backend-utilities": "^1.2.0",
+    "bcryptjs": "^2.4.3",
     "body-parser": "latest",
     "cookie-parser": "latest",
     "dataloader": "^1.4.0",
     "express": "^4.16.3",
     "express-graphql": "^0.6.12",
-    "oauth2-server": "latest",
     "graphql": "^0.13.2",
-    "graphql-tools": "^2.23.1",
-    "lodash": "latest",
-    "mongoose": "^5.0.11",
+    "graphql-tools": "^2.24.0",
+    "lodash": "^4.17.10",
+    "mongoose": "^5.0.16",
     "node-cache": "^4.2.0",
+    "oauth2-server": "latest",
     "ts-node": "^5.0.1",
-    "typescript": "^2.7.2"
+    "typescript": "^2.8.3"
   },
   "devDependencies": {
-    "@types/mocha": "^5.0.0",
+    "@types/bcryptjs": "^2.4.1",
+    "@types/mocha": "^5.2.0",
+    "@types/mongoose": "^5.0.10",
+    "@types/node": "^9.6.7",
     "chai": "latest",
     "mocha": "^5.0.5"
   }

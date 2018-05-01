@@ -12,11 +12,42 @@ var oauthServer = require('oauth2-server')
 var Request = oauthServer.Request
 var Response = oauthServer.Response
 
-import { getProjection } from 'backend-utilities'
+import { 
+    getProjection, 
+    requireTypePermissions, 
+    requirePermission, 
+    Operation,
+    RelayHelper,
+    RelayHelperFactory
+} from 'backend-utilities'
+
+import withAuth from './withAuth'
+
+import * as _ from 'lodash'
+
+const tokenRelayHelperFactory = new RelayHelperFactory(Token, 'token')
+const roleRelayHelperFactory = new RelayHelperFactory(Role, 'role')
+const userRelayHelperFactory = new RelayHelperFactory(User, 'user')
+const clientRelayHelperFactory = new RelayHelperFactory(Client, 'client')
+const permissionRelayHelperFactory = new RelayHelperFactory(Permission, 'permission')
 
 export default {
-    clients: (root, params, source, options) => Client.find().select(getProjection(options)).lean().exec(),
-    users:  (root, params, source, options) => User.find().select(getProjection(options)).lean().exec(),
+    clients: (root, params, source, options) => {
+        return clientRelayHelperFactory.createHelper({params, source, options}).performRelayQuery()
+    },
+    users:  (root, params, source, options) => {
+        return userRelayHelperFactory.createHelper({params, source, options}).performRelayQuery()
+    },
+    tokens: (root, params, source, options) => {
+        return tokenRelayHelperFactory.createHelper({params, source, options}).performRelayQuery()
+    },
+    permissions: async (root, params, source, options) => {
+        return permissionRelayHelperFactory.createHelper({params, source, options}).performRelayQuery()
+    },
+    roles: (root, params, source, options) => {
+        return roleRelayHelperFactory.createHelper({params, source, options}).performRelayQuery()
+    },
+
     me: (root, params, source, options) => {
         if(source.token && source.token.userId) {
             return User.findOne({ _id: source.token.userId }).select(getProjection(options)).lean().exec()
@@ -24,9 +55,6 @@ export default {
             throw "valid accesstoken is required"
         }
     },
-    tokens: (root, params, source, options) => Token.find().select(getProjection(options)).lean().exec(),
-    permissions: (root, params, source, options) => Permission.find().select(getProjection(options)).lean().exec(),
-    roles: (root, params, source, options) => Role.find().select(getProjection(options)).lean().exec(),
 
     login: (root, params, source, options) => {
         let request = new Request({
@@ -49,10 +77,32 @@ export default {
         return getOAuthServer().token(request, response, {})
     },
 
-    userByAccessToken: (root, params, source, options) => {
-        return Token.findOne({ accessToken: params.accessToken }).select('userId').lean().exec()
-        .then(token => {
-            return User.findOne({_id: token.userId}).select(getProjection(options)).lean().exec()
+    refresh: (root, params, source, options) => {
+        let request = new Request({
+            method: 'POST',
+            query: {},
+            headers: {
+                Authorization: 'Basic ' + Buffer.from(`${params.clientId}:${params.clientSecret}`).toString('base64'),
+                "Content-Type": 'application/x-www-form-urlencoded',
+                "transfer-encoding": '',
+                "content-length": 0
+            },
+            body: {
+                refresh_token: params.refreshToken,
+                grant_type: 'refresh_token'
+            }
         })
+        let response = new Response({})
+
+        return getOAuthServer().token(request, response, {})
+    },
+
+    userByAccessToken: async (root, params, source, options) => {
+        requirePermission(source.userPermissions, 'userByAccessToken')
+        let projection = getProjection(options)
+        requireTypePermissions(source.userPermissions, 'user', projection, Operation.READ)
+
+        let token = await Token.findOne({ accessToken: params.accessToken }).select('userId').lean().exec()
+        return User.findOne({_id: token.userId}).select(projection).lean().exec()
     }
 }

@@ -1,4 +1,4 @@
-import * as Promise from 'bluebird'
+import { compare } from 'bcryptjs'
 
 import { Token, Client, User } from './model'
 
@@ -14,8 +14,17 @@ export function getClient(id, secret) {
 	return Client.findOne({ clientId: id, clientSecret: secret}).lean().exec()
 }
 
-export function getUser(username, password) {
-	return User.findOne({ username: username, password: password}).lean().exec()
+export async function getUser(username, password) {
+	let user = await User.findOne({ username: username }).lean().exec()
+
+	if(!user) throw "Invalid login"
+
+	let isPasswordValid = await compare(password, user.password)
+	if(isPasswordValid) {
+		return user
+	}
+
+	throw "Invalid login"
 }
 
 export function getUserFromClient(client) {
