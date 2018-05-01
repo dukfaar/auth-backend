@@ -14,6 +14,9 @@
   "author": "dukfaar <dukfaar@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^9.6.7",
+    "@types/bcryptjs": "^2.4.1",
+    "@types/mongoose": "^5.0.10",
     "apollo-link": "^1.2.1",
     "backend-utilities": "^1.2.1",
     "bcryptjs": "^2.4.3",
@@ -32,10 +35,7 @@
     "typescript": "^2.8.3"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.1",
     "@types/mocha": "^5.2.0",
-    "@types/mongoose": "^5.0.10",
-    "@types/node": "^9.6.7",
     "chai": "latest",
     "mocha": "^5.0.5"
   }
