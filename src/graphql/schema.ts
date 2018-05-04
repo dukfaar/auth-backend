@@ -20,6 +20,7 @@ import typeDefs from './typedefs'
 
 import queryResolvers from './queryResolvers'
 import mutationResolvers from './mutationResolvers' 
+import subscriptionResolvers from './subscriptionResolvers'
 
 const tokenRelayHelperFactor = new RelayHelperFactory(Token, 'token')
 const roleRelayHelperFactor = new RelayHelperFactory(Role, 'role')
@@ -79,7 +80,9 @@ const resolvers = {
 
     Query: queryResolvers,
 
-    Mutation: mutationResolvers
+    Mutation: mutationResolvers,
+
+    Subscription: subscriptionResolvers
 }
 
 export const Schema = makeExecutableSchema({

@@ -4,7 +4,7 @@ import {
     mongooseCreateType as createType,
     mongooseUpdateType as updateType,
     requirePermission
-  } from 'backend-utilities'
+} from 'backend-utilities'
 
 import {
     User,

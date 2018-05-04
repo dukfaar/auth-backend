@@ -2,6 +2,9 @@ import * as express from 'express'
 import * as bodyParser from 'body-parser'
 import * as cookieParser from 'cookie-parser'
 import * as dataloader from 'dataloader'
+import { createServer } from 'http'
+import { execute, subscribe } from 'graphql'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
 
 import * as NodeCache from 'node-cache'
 
@@ -28,12 +31,14 @@ import { getOAuthServer } from './oauthServer'
 
 export class App {
 	private expressApp
+	private expressServer
 	private userCache
 	private userPermissionCache
 	private port = process.env.PORT || 3000
 
 	public constructor() {
 		this.expressApp = express()
+		this.expressServer = createServer(this.expressApp)
 		
 		this.expressApp.use(bodyParser.json())
 		this.expressApp.use(cookieParser())
@@ -98,7 +103,8 @@ export class App {
 		},
 			graphqlHTTP(req => ({
 				schema: Schema,
-				graphiql: true, //Set to false if you don't want graphiql enabled,
+				graphiql: true,
+				//Set to false if you don't want graphiql enabled,
 				context: {
 					token: req.token,
 					authError: req.authError,
@@ -114,6 +120,13 @@ export class App {
 	private listen(): void {
 		this.expressApp.listen(this.port, (err) => {
 			if (err) throw err
+
+			new SubscriptionServer({
+				execute, subscribe, schema: Schema
+			}, {
+				server: this.expressServer,
+				path: '/subscriptions'
+			})
 
 			return console.log(`server is listening on ${this.port}`)
 		})

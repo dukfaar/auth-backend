@@ -32,6 +32,8 @@ const userRelayHelperFactory = new RelayHelperFactory(User, 'user')
 const clientRelayHelperFactory = new RelayHelperFactory(Client, 'client')
 const permissionRelayHelperFactory = new RelayHelperFactory(Permission, 'permission')
 
+import { pubsub } from './pubsub'
+
 export default {
     clients: (root, params, source, options) => {
         return clientRelayHelperFactory.createHelper({params, source, options}).performRelayQuery()
@@ -50,6 +52,7 @@ export default {
     },
 
     me: (root, params, source, options) => {
+        pubsub.publish('permission created', { test: true, name: 'woof', _id: 123 })
         if(source.token && source.token.userId) {
             return User.findOne({ _id: source.token.userId }).select(getProjection(options)).lean().exec()
         } else {
