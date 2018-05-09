@@ -120,7 +120,6 @@ export default {
     },
 
     testNotify: (root, params, source, options) => {
-        console.log(source)
         pubsub.publish('testSubscription', {testSubscription: 'someData'})
         return "OK"
     }

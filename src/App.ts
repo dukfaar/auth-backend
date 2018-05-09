@@ -74,7 +74,7 @@ export class App {
 	}
 
 	private async getUserPermissionByUser(user) {
-		return fetchFromCache(this.userPermissionCache, user._id,
+		return fetchFromCache(this.userPermissionCache, user._id.toString(),
 			async key => {
 				let roles = await Role.find({ _id: user.roles }).select('permissions').lean().exec()
 				let permissionIds = _.uniq(_.flatMap(roles, role => role.permissions))
