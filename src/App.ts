@@ -39,11 +39,11 @@ export class App {
 	public constructor() {
 		this.expressApp = express()
 		this.expressServer = createServer(this.expressApp)
-		
+
 		this.expressApp.use(bodyParser.json())
 		this.expressApp.use(cookieParser())
-		this.expressApp.use(bodyParser.urlencoded({extended: false}))	
-		
+		this.expressApp.use(bodyParser.urlencoded({ extended: false }))
+
 		this.expressApp.use('*', (req, res, next) => {
 			res.header('Access-Control-Allow-Origin', '*')
 			res.header('Access-Control-Allow-Credentials', true)
@@ -55,16 +55,33 @@ export class App {
 
 		this.expressApp.options('*', (req, res) => { res.send('OK') })
 
-		this.userCache = new NodeCache({stdTTL: 100, checkperiod: 120})
-		this.userPermissionCache = new NodeCache({stdTTL: 100, checkperiod: 120})
+		this.userCache = new NodeCache({ stdTTL: 100, checkperiod: 120 })
+		this.userPermissionCache = new NodeCache({ stdTTL: 100, checkperiod: 120 })
 
 		initDb()
 	}
- 
+
 	public start() {
 		this.loadRoutes()
 
 		this.listen()
+	}
+
+	private async getUserByToken(token) {
+		return fetchFromCache(this.userCache, token.userId,
+			key => User.findOne({ _id: token.userId }).select('roles').lean().exec()
+		)
+	}
+
+	private async getUserPermissionByUser(user) {
+		return fetchFromCache(this.userPermissionCache, user._id,
+			async key => {
+				let roles = await Role.find({ _id: user.roles }).select('permissions').lean().exec()
+				let permissionIds = _.uniq(_.flatMap(roles, role => role.permissions))
+				let permissionObjects = await Permission.find({ _id: permissionIds }).select('name').lean().exec()
+				return _.map(permissionObjects, permission => permission.name)
+			}
+		)
 	}
 
 	private async loadRoutes() {
@@ -72,34 +89,23 @@ export class App {
 
 		this.expressApp.use('/', (req, res, next) => {
 			getOAuthServer().authenticate(
-				new Request(req), 
+				new Request(req),
 				new Response(res)
 			)
-			.then(async token => {	
-				req.token = token
+				.then(async token => {
+					req.token = token
+					req.user = await this.getUserByToken(token)
+					req.userPermissions = await this.getUserPermissionByUser(req.user)
 
-				req.user = await fetchFromCache(this.userCache, token.userId, 
-					key => User.findOne({_id: token.userId}).select('roles').lean().exec()
-				)
-
-				req.userPermissions = await fetchFromCache(this.userPermissionCache, token.userId, 
-					async key => {
-						let roles = await Role.find({_id: req.user.roles }).select('permissions').lean().exec()
-						let permissionIds = _.uniq(_.flatMap(roles, role => role.permissions))
-						let permissionObjects = await Permission.find({_id: permissionIds}).select('name').lean().exec()
-						return _.map(permissionObjects, permission => permission.name)
-					}
-				)
-
-				next()
-			})
-			.catch(error => {
-				req.token = undefined
-				req.authError = error
-				req.userPermissions = []
-				req.user = {}
-				next()
-			})
+					next()
+				})
+				.catch(error => {
+					req.token = undefined
+					req.authError = error
+					req.userPermissions = []
+					req.user = {}
+					next()
+				})
 		},
 			graphqlHTTP(req => ({
 				schema: Schema,
@@ -118,11 +124,48 @@ export class App {
 	}
 
 	private listen(): void {
-		this.expressApp.listen(this.port, (err) => {
+		this.expressServer.listen(this.port, (err) => {
 			if (err) throw err
 
 			new SubscriptionServer({
-				execute, subscribe, schema: Schema
+				execute, subscribe, schema: Schema,
+				onOperation: async (message, params) => {
+					let newContext = {
+						token: undefined,
+						user: undefined,
+						userPermissions: undefined
+					}
+
+					if(message.payload && message.payload.Authorization) {
+						await getOAuthServer().authenticate(
+							new Request({
+								method: 'GET',
+  								query: {},
+								headers: {
+									Authorization: message.payload.Authorization
+								}
+							}),
+							new Response({
+								headers: {}
+							})
+						)
+						.then(async token => {
+							newContext.token = token
+							newContext.user = await this.getUserByToken(token)
+							newContext.userPermissions = await this.getUserPermissionByUser(newContext.user)
+						})
+						.catch(error => {
+							console.log(error)
+						})
+					}
+					return {
+						...params,
+						context: {
+							...params.context,
+							...newContext
+						}
+					}
+				}
 			}, {
 				server: this.expressServer,
 				path: '/subscriptions'

@@ -7,9 +7,29 @@ export default {
             console.log(payload)
             return payload
         },
-        subscribe: () => { 
+        subscribe: (a) => { 
             console.log('subscribed')
-            pubsub.asyncIterator('permission created') 
+            console.log(a)
+            return pubsub.asyncIterator('permission created') 
+        }
+    },
+
+    testSubscription: {
+        resolve: (payload,c,d,e) => {
+            console.log('payload: ')
+            console.log(payload)
+            console.log(c)
+            console.log(d)
+            console.log(e)
+            return {}
+        },
+        subscribe: (parent, args, ctx, info) => {
+            console.log('subscribed')
+            console.log(parent)
+            console.log(args)
+            console.log(ctx)
+            console.log(info)
+            return pubsub.asyncIterator('testSubscription')
         }
     }
 }

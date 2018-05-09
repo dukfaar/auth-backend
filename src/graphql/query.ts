@@ -14,5 +14,7 @@ type Query {
     userByAccessToken(accessToken: String!): User
 
     user(id: ID!): User
+
+    testNotify: String
 }
 `
