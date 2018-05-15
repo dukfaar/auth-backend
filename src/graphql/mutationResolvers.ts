@@ -18,16 +18,28 @@ import {
     createCrudPermissionsForType
 } from '../util'
 
+import { pubsub } from './pubsub'
+
 export default {
     createClient: (value, params) => createType(Client, {clientId: params.clientId}, params),  
     updateClient: (value, params) => updateType(Client, {clientId: params.clientId}, params),
     deleteClient: (value, params) => Client.remove({clientId: params.clientId}).exec(),
 
-    createUser: (value, params) => createType(User, {username: params.username}, params),  
+    createUser: (value, params) => {
+        return createType(User, {username: params.username}, params)
+        .then(role => {
+            pubsub.publish('role created', role)
+        })
+    },  
     updateUser: (value, params) => updateType(User, {username: params.username}, params),
     deleteUser: (value, params) => User.remove({username: params.username}).exec(),
 
-    createPermission: (value, params) => createType(Permission, {name: params.name}, params),  
+    createPermission: (value, params) => {
+        return createType(Permission, {name: params.name}, params)
+        .then(permission => {
+            pubsub.publish('permission created', permission)
+        })
+    },  
     updatePermission: (value, params) => updateType(Permission, {name: params.name}, params),
     deletePermissionByName: (value, params) => Permission.remove({name: params.name}).exec(),
 

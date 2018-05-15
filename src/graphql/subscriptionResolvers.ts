@@ -2,16 +2,15 @@ import { pubsub } from './pubsub'
 
 export default {
     permissionCreated: {
-        resolve: (payload) => {
-            console.log('payload: ')
-            console.log(payload)
-            return payload
-        },
         subscribe: (a) => { 
-            console.log('subscribed')
-            console.log(a)
             return pubsub.asyncIterator('permission created') 
         }
+    },
+
+    roleCreated: {
+        subscribe: () => {
+            return pubsub.asyncIterator('role created')
+        } 
     },
 
     testSubscription: {
