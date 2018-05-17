@@ -16,8 +16,14 @@ node {
             sh 'npm run build'
         }
     }
-    
-    stage('Docker Build') {
-        docker.build('dukfaar/auth-backend')
+
+    if(env.BRANCH_NAME == 'master') {
+        stage('Docker Build') {
+            docker.build('dukfaar/auth-backend')
+        }
+
+        stage('Update Service') {
+            sh 'docker service update --force auth-backend_auth-backend'
+        }
     }
 }
