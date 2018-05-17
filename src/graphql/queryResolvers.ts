@@ -117,5 +117,10 @@ export default {
 
         let token = await Token.findOne({ accessToken: params.accessToken }).select('userId').lean().exec()
         return User.findOne({_id: token.userId}).select(projection).lean().exec()
+    },
+
+    testNotify: (root, params, source, options) => {
+        pubsub.publish('testSubscription', {testSubscription: 'someData'})
+        return "OK"
     }
 }
