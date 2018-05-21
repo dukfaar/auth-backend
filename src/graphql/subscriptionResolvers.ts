@@ -1,4 +1,8 @@
 import {
+    requireTypePermissions
+} from 'backend-utilities'
+
+import {
     clientHelper,
     userHelper,
     roleHelper,
@@ -6,19 +10,19 @@ import {
 } from './mongooseHelpers'
 
 export default {
-    permissionCreated: { subscribe: a => permissionHelper.subscribeCreated() },
-    permissionUpdated: { subscribe: a => permissionHelper.subscribeUpdated() },
-    permissionDeleted: { subscribe: a => permissionHelper.subscribeDeleted() },
+    permissionCreated: { subscribe: permissionHelper.subscribeCreated },
+    permissionUpdated: { subscribe: permissionHelper.subscribeUpdated },
+    permissionDeleted: { subscribe: permissionHelper.subscribeDeleted },
 
-    roleCreated: { subscribe: a => roleHelper.subscribeCreated() },
-    roleUpdated: { subscribe: a => roleHelper.subscribeUpdated() },
-    roleDeleted: { subscribe: a => roleHelper.subscribeDeleted() },
+    roleCreated: { subscribe: roleHelper.subscribeCreated },
+    roleUpdated: { subscribe: roleHelper.subscribeUpdated },
+    roleDeleted: { subscribe: roleHelper.subscribeDeleted },
 
-    userCreated: { subscribe: a => userHelper.subscribeCreated() },
-    userUpdated: { subscribe: a => userHelper.subscribeUpdated() },
-    userDeleted: { subscribe: a => userHelper.subscribeDeleted() },
+    userCreated: { subscribe: userHelper.subscribeCreated },
+    userUpdated: { subscribe: userHelper.subscribeUpdated },
+    userDeleted: { subscribe: userHelper.subscribeDeleted },
 
-    clientCreated: { subscribe: a => clientHelper.subscribeCreated() },
-    clientUpdated: { subscribe: a => clientHelper.subscribeUpdated() },
-    clientDeleted: { subscribe: a => clientHelper.subscribeDeleted() },
+    clientCreated: { subscribe: clientHelper.subscribeCreated },
+    clientUpdated: { subscribe: clientHelper.subscribeUpdated },
+    clientDeleted: { subscribe: clientHelper.subscribeDeleted },
 }
