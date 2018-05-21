@@ -1,34 +1,24 @@
-import { pubsub } from './pubsub'
+import {
+    clientHelper,
+    userHelper,
+    roleHelper,
+    permissionHelper
+} from './mongooseHelpers'
 
 export default {
-    permissionCreated: {
-        subscribe: (a) => { 
-            return pubsub.asyncIterator('permission created') 
-        }
-    },
+    permissionCreated: { subscribe: a => permissionHelper.subscribeCreated() },
+    permissionUpdated: { subscribe: a => permissionHelper.subscribeUpdated() },
+    permissionDeleted: { subscribe: a => permissionHelper.subscribeDeleted() },
 
-    roleCreated: {
-        subscribe: () => {
-            return pubsub.asyncIterator('role created')
-        } 
-    },
+    roleCreated: { subscribe: a => roleHelper.subscribeCreated() },
+    roleUpdated: { subscribe: a => roleHelper.subscribeUpdated() },
+    roleDeleted: { subscribe: a => roleHelper.subscribeDeleted() },
 
-    testSubscription: {
-        /*resolve: (payload,args,context,info) => {
-            console.log('payload: ')
-            console.log(payload)
-            console.log(c)
-            console.log(d)
-            console.log(e)
-            return payload
-        },*/
-        subscribe: (parent, args, ctx, info) => {
-            /*console.log('subscribed')
-            console.log(parent)
-            console.log(args)
-            console.log(ctx)
-            console.log(info)*/
-            return pubsub.asyncIterator('testSubscription')
-        }
-    }
+    userCreated: { subscribe: a => userHelper.subscribeCreated() },
+    userUpdated: { subscribe: a => userHelper.subscribeUpdated() },
+    userDeleted: { subscribe: a => userHelper.subscribeDeleted() },
+
+    clientCreated: { subscribe: a => clientHelper.subscribeCreated() },
+    clientUpdated: { subscribe: a => clientHelper.subscribeUpdated() },
+    clientDeleted: { subscribe: a => clientHelper.subscribeDeleted() },
 }

@@ -52,7 +52,6 @@ export default {
     },
 
     me: (root, params, source, options) => {
-        pubsub.publish('permission created', { test: true, name: 'woof', _id: 123 })
         if(source.token && source.token.userId) {
             return User.findOne({ _id: source.token.userId }).select(getProjection(options)).lean().exec()
         } else {
@@ -118,9 +117,4 @@ export default {
         let token = await Token.findOne({ accessToken: params.accessToken }).select('userId').lean().exec()
         return User.findOne({_id: token.userId}).select(projection).lean().exec()
     },
-
-    testNotify: (root, params, source, options) => {
-        pubsub.publish('testSubscription', {testSubscription: 'someData'})
-        return "OK"
-    }
 }
