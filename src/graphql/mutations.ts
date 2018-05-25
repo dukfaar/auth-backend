@@ -13,7 +13,7 @@ type Mutation {
     deletePermissionByName(id: String!): Permission
 
     createRole(name: String!): Role
-    updateRole(id: String!, role: RoleInput!): Role
+    updateRole(id: String!, input: RoleInput!): Role
     deleteRole(id: String!): Role
 
     registerTypeForPermissions(name: String!, fields: [String]!): [Permission]
