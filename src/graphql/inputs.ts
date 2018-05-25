@@ -13,4 +13,10 @@ input RoleInput {
 input PermissionInput {
     name: String
 }
+
+input ClientInput {
+    clientId: String
+    clientSecret: String
+    grants: [String]
+}
 `
