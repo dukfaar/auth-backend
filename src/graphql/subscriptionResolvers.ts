@@ -10,19 +10,19 @@ import {
 } from './mongooseHelpers'
 
 export default {
-    permissionCreated: { subscribe: permissionHelper.subscribeCreated },
-    permissionUpdated: { subscribe: permissionHelper.subscribeUpdated },
-    permissionDeleted: { subscribe: permissionHelper.subscribeDeleted },
+    permissionCreated: { resolve: value => value, subscribe: permissionHelper.subscribeCreated.bind(permissionHelper) },
+    permissionUpdated: { resolve: value => value, subscribe: permissionHelper.subscribeUpdated.bind(permissionHelper) },
+    permissionDeleted: { resolve: value => value, subscribe: permissionHelper.subscribeDeleted.bind(permissionHelper) },
 
-    roleCreated: { subscribe: roleHelper.subscribeCreated },
-    roleUpdated: { subscribe: roleHelper.subscribeUpdated },
-    roleDeleted: { subscribe: roleHelper.subscribeDeleted },
+    roleCreated: { resolve: value => value, subscribe: roleHelper.subscribeCreated.bind(roleHelper) },
+    roleUpdated: { resolve: value => value, subscribe: roleHelper.subscribeUpdated.bind(roleHelper) },
+    roleDeleted: { resolve: value => value, subscribe: roleHelper.subscribeDeleted.bind(roleHelper) },
 
-    userCreated: { subscribe: userHelper.subscribeCreated },
-    userUpdated: { subscribe: userHelper.subscribeUpdated },
-    userDeleted: { subscribe: userHelper.subscribeDeleted },
+    userCreated: { resolve: value => value, subscribe: userHelper.subscribeCreated.bind(userHelper) },
+    userUpdated: { resolve: value => value, subscribe: userHelper.subscribeUpdated.bind(userHelper) },
+    userDeleted: { resolve: value => value, subscribe: userHelper.subscribeDeleted.bind(userHelper) },
 
-    clientCreated: { subscribe: clientHelper.subscribeCreated },
-    clientUpdated: { subscribe: clientHelper.subscribeUpdated },
-    clientDeleted: { subscribe: clientHelper.subscribeDeleted },
+    clientCreated: { resolve: value => value, subscribe: clientHelper.subscribeCreated.bind(clientHelper) },
+    clientUpdated: { resolve: value => value, subscribe: clientHelper.subscribeUpdated.bind(clientHelper) },
+    clientDeleted: { resolve: value => value, subscribe: clientHelper.subscribeDeleted.bind(clientHelper) },
 }
