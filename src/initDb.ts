@@ -11,6 +11,9 @@ export default async () => {
             name: 'admin',
         })
         adminRole = await adminRole.save()
+    } else {
+        console.log('admin role already exists')
+        console.log(adminRole)
     }
 
     let adminUser = await User.findOne({username: 'admin'}).exec()
@@ -22,6 +25,9 @@ export default async () => {
             roles: [adminRole._id]
         })
         adminUser = await adminUser.save()
+    } else {
+        console.log('admin user already exists')
+        console.log(adminUser)
     }
 
     tryAddPermission('registerTypeForPermissions')
@@ -34,5 +40,8 @@ export default async () => {
             grants: ['password', 'refresh_token']
         })
         initialClient = await initialClient.save()
+    } else {
+        console.log('initial client already exists')
+        console.log(initialClient)
     }
 }
