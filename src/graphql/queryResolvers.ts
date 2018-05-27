@@ -100,12 +100,21 @@ export default {
         return getOAuthServer().token(request, response, {})
     },
 
-    user: async(root, params, source,options) => {
+    user: async(root, params, source, options) => {
         let projection = getProjection(options)
         requireTypePermissions(source.userPermissions, 'user', projection, Operation.READ)
 
         if(params.id) {
             return User.findOne({_id: params.id}).select(projection).lean().exec()
+        } else throw "Unknown Query Parameters"
+    },
+
+    role: async(root, params, source, options) => {
+        let projection = getProjection(options)
+        requireTypePermissions(source.userPermissions, 'role', projection, Operation.READ)
+
+        if(params.id) {
+            return Role.findOne({_id: params.id}).select(projection).lean().exec()
         } else throw "Unknown Query Parameters"
     },
 

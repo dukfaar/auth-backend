@@ -14,5 +14,6 @@ type Query {
     userByAccessToken(accessToken: String!): User
 
     user(id: ID!): User
+    role(id: ID!): Role
 }
 `
