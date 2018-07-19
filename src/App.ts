@@ -5,6 +5,7 @@ import * as dataloader from 'dataloader'
 import { createServer } from 'http'
 import { execute, subscribe } from 'graphql'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
+import { Writer, Reader } from 'nsqjs'
 
 import * as NodeCache from 'node-cache'
 
@@ -35,6 +36,8 @@ export class App {
 	private userCache
 	private userPermissionCache
 	private port = process.env.PORT || 3000
+	private nsqWriter
+	private nsqReaderFactory
 
 	public constructor() {
 		this.expressApp = express()
@@ -48,7 +51,7 @@ export class App {
 			res.header('Access-Control-Allow-Origin', '*')
 			res.header('Access-Control-Allow-Credentials', true)
 			res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PUT')
-			res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+			res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Authentication')
 			res.header('Access-Control-Max-Age', '600')
 			next()
 		})
@@ -57,6 +60,17 @@ export class App {
 
 		this.userCache = new NodeCache({ stdTTL: 100, checkperiod: 120 })
 		this.userPermissionCache = new NodeCache({ stdTTL: 100, checkperiod: 120 })
+
+		this.nsqReaderFactory = (topic, channel) => {
+			return new Reader(topic, channel, {
+				lookupdHTTPAddresses: process.env.NSQLOOKUP_HTTP_URL || 'localhost:4161'
+			})
+		}
+
+		let [nsqdHost, nsqdPort] = (process.env.NSQD_TCP_URL || 'localhost:4150').split(':')
+
+		this.nsqWriter = new Writer(nsqdHost, parseInt(nsqdPort))
+		this.nsqWriter.connect()
 
 		initDb()
 	}
@@ -96,7 +110,6 @@ export class App {
 					req.token = token
 					req.user = await this.getUserByToken(token)
 					req.userPermissions = await this.getUserPermissionByUser(req.user)
-
 					next()
 				})
 				.catch(error => {
@@ -107,17 +120,19 @@ export class App {
 					next()
 				})
 		},
-			graphqlHTTP(req => ({
-				schema: Schema,
-				graphiql: true,
-				//Set to false if you don't want graphiql enabled,
-				context: {
-					token: req.token,
-					authError: req.authError,
-					user: req.user,
-					userPermissions: req.userPermissions
+			graphqlHTTP(req => {
+				return {
+					schema: Schema,
+					graphiql: false,
+					//Set to false if you don't want graphiql enabled,
+					context: {
+						token: req.token,
+						authError: req.authError,
+						user: req.user,
+						userPermissions: req.userPermissions
+					}
 				}
-			}))
+			})
 		)
 
 		console.log('done loading routes')
@@ -169,6 +184,32 @@ export class App {
 			}, {
 				server: this.expressServer,
 				path: '/subscriptions'
+			})
+
+			this.nsqWriter.publish('service.up', {
+				Name: "auth",
+				Hostname: process.env.PUBLISHED_HOSTNAME || "auth-backend",
+				Port:process.env.PUBLISHED_PORT || this.port,
+				GraphQLHttpEndpoint: "/",
+				GraphQLSocketEndpoint: "/socket",
+			})
+
+			let serviceUpReader = this.nsqReaderFactory('service.up', 'authbackend')
+			serviceUpReader.connect()
+			serviceUpReader.on('message', msg => {
+				let data = msg.json()
+
+				if (data.Name == "apigateway") {
+					this.nsqWriter.publish('service.up', {
+						Name: "auth",
+						Hostname: process.env.PUBLISHED_HOSTNAME || "auth-backend",
+						Port:process.env.PUBLISHED_PORT || this.port,
+						GraphQLHttpEndpoint: "/",
+						GraphQLSocketEndpoint: "/socket",
+					})
+				}
+
+				msg.finish()
 			})
 
 			return console.log(`server is listening on ${this.port}`)
