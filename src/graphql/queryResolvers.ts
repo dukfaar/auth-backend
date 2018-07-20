@@ -26,6 +26,8 @@ import withAuth from './withAuth'
 
 import * as _ from 'lodash'
 
+import {nsqPublish} from 'backend-utilities'
+
 const tokenRelayHelperFactory = new RelayHelperFactory(Token, 'token')
 const roleRelayHelperFactory = new RelayHelperFactory(Role, 'role')
 const userRelayHelperFactory = new RelayHelperFactory(User, 'user')
@@ -75,7 +77,25 @@ export default {
         })
         let response = new Response({})
 
-        return getOAuthServer().token(request, response, {})
+        let loginResult = getOAuthServer().token(request, response, {})
+
+        loginResult.then(result => {
+            nsqPublish('login.success', {
+                userId: result.userId,
+                accessToken: result.accessToken,
+                accessTokenExpiresAt: result.accessTokenExpiresAt
+            })
+        })
+        .catch(error => {
+            nsqPublish('login.failed', {
+                username: params.username,
+                clientId: params.clientId,
+                clientSecret: params.clientSecret,
+                error: error
+            })
+        })
+
+        return loginResult
     },
 
     refresh: (root, params, source, options) => {
@@ -95,7 +115,25 @@ export default {
         })
         let response = new Response({})
 
-        return getOAuthServer().token(request, response, {})
+        let refreshResult = getOAuthServer().token(request, response, {})
+
+        refreshResult.then(result => {
+            nsqPublish('accesstoken.refresh.success', {
+                userId: result.userId,
+                accessToken: result.accessToken,
+                accessTokenExpiresAt: result.accessTokenExpiresAt
+            })
+        })
+        .catch(error => {
+            nsqPublish('accesstoken.refresh.failed', {
+                refreshToken: params.refreshToken,
+                clientId: params.clientId,
+                clientSecret: params.clientSecret,
+                error: error
+            })
+        })
+
+        return refreshResult
     },
 
     user: async(root, params, source, options) => {
