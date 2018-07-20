@@ -32,8 +32,6 @@ const userRelayHelperFactory = new RelayHelperFactory(User, 'user')
 const clientRelayHelperFactory = new RelayHelperFactory(Client, 'client')
 const permissionRelayHelperFactory = new RelayHelperFactory(Permission, 'permission')
 
-import { pubsub } from './pubsub'
-
 export default {
     clients: (root, params, source, options) => {
         return clientRelayHelperFactory.createHelper({params, source, options}).performRelayQuery()

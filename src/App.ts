@@ -5,9 +5,12 @@ import * as dataloader from 'dataloader'
 import { createServer } from 'http'
 import { execute, subscribe } from 'graphql'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
-import { Writer, Reader } from 'nsqjs'
+
+import { nsqPublish, nsqReaderFactory } from 'backend-utilities'
 
 import * as NodeCache from 'node-cache'
+
+import {hostname} from 'os'
 
 import './db'
 import initDb from './initDb'
@@ -36,8 +39,6 @@ export class App {
 	private userCache
 	private userPermissionCache
 	private port = process.env.PORT || 3000
-	private nsqWriter
-	private nsqReaderFactory
 
 	public constructor() {
 		this.expressApp = express()
@@ -61,17 +62,6 @@ export class App {
 		this.userCache = new NodeCache({ stdTTL: 100, checkperiod: 120 })
 		this.userPermissionCache = new NodeCache({ stdTTL: 100, checkperiod: 120 })
 
-		this.nsqReaderFactory = (topic, channel) => {
-			return new Reader(topic, channel, {
-				lookupdHTTPAddresses: process.env.NSQLOOKUP_HTTP_URL || 'localhost:4161'
-			})
-		}
-
-		let [nsqdHost, nsqdPort] = (process.env.NSQD_TCP_URL || 'localhost:4150').split(':')
-
-		this.nsqWriter = new Writer(nsqdHost, parseInt(nsqdPort))
-		this.nsqWriter.connect()
-
 		initDb()
 	}
 
@@ -87,14 +77,16 @@ export class App {
 		)
 	}
 
+	private async fetchUserPermissions(user) {
+		let roles = await Role.find({ _id: user.roles }).select('permissions').lean().exec()
+		let permissionIds = _.uniq(_.flatMap(roles, role => role.permissions))
+		let permissionObjects = await Permission.find({ _id: permissionIds }).select('name').lean().exec()
+		return _.map(permissionObjects, permission => permission.name)
+	}
+
 	private async getUserPermissionByUser(user) {
 		return fetchFromCache(this.userPermissionCache, user._id.toString(),
-			async key => {
-				let roles = await Role.find({ _id: user.roles }).select('permissions').lean().exec()
-				let permissionIds = _.uniq(_.flatMap(roles, role => role.permissions))
-				let permissionObjects = await Permission.find({ _id: permissionIds }).select('name').lean().exec()
-				return _.map(permissionObjects, permission => permission.name)
-			}
+			async key => this.fetchUserPermissions(user)
 		)
 	}
 
@@ -129,13 +121,23 @@ export class App {
 						token: req.token,
 						authError: req.authError,
 						user: req.user,
-						userPermissions: req.userPermissions
+						userPermissions: req.userPermissions,
 					}
 				}
 			})
 		)
 
 		console.log('done loading routes')
+	}
+
+	private publishServiceUp() {
+		nsqPublish('service.up', {
+			Name: "auth",
+			Hostname: process.env.PUBLISHED_HOSTNAME || "auth-backend",
+			Port:process.env.PUBLISHED_PORT || this.port,
+			GraphQLHttpEndpoint: "/",
+			GraphQLSocketEndpoint: "/socket",
+		})
 	}
 
 	private listen(): void {
@@ -186,30 +188,34 @@ export class App {
 				path: '/subscriptions'
 			})
 
-			this.nsqWriter.publish('service.up', {
-				Name: "auth",
-				Hostname: process.env.PUBLISHED_HOSTNAME || "auth-backend",
-				Port:process.env.PUBLISHED_PORT || this.port,
-				GraphQLHttpEndpoint: "/",
-				GraphQLSocketEndpoint: "/socket",
-			})
+			this.publishServiceUp()
 
-			let serviceUpReader = this.nsqReaderFactory('service.up', 'authbackend')
+			let serviceUpReader = nsqReaderFactory('service.up', 'authbackend')
 			serviceUpReader.connect()
 			serviceUpReader.on('message', msg => {
 				let data = msg.json()
 
 				if (data.Name == "apigateway") {
-					this.nsqWriter.publish('service.up', {
-						Name: "auth",
-						Hostname: process.env.PUBLISHED_HOSTNAME || "auth-backend",
-						Port:process.env.PUBLISHED_PORT || this.port,
-						GraphQLHttpEndpoint: "/",
-						GraphQLSocketEndpoint: "/socket",
-					})
+					this.publishServiceUp()
 				}
 
 				msg.finish()
+			})
+
+			let roleUpdatedReader = nsqReaderFactory('role.updated', 'authbackend_' + hostname())
+			roleUpdatedReader.connect()
+			roleUpdatedReader.on('message', msg => {
+				let role = msg.json()
+				User.find({roles: role._id}).select('roles').lean().exec()
+				.then(users => {
+					return Promise.all(_.map(users, async user => {
+						this.userCache.set(user._id.toString(), user)
+						this.userPermissionCache.set(user._id.toString(), await this.fetchUserPermissions(user))
+					}))
+				})
+				.then(() => {
+					msg.finish()
+				})
 			})
 
 			return console.log(`server is listening on ${this.port}`)

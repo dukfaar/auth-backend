@@ -3,14 +3,16 @@ import * as _ from 'lodash'
 import { Permission, Role } from './model'
 import { crudFunctionNames } from './crudFunctionNames'
 
-import { pubsub } from './graphql/pubsub'
+import { nsqPublish } from 'backend-utilities'
 
 async function addPermissionToAdminRole(permission) {
     let adminRole:any = await Role.findOne({name: 'admin'}).exec()
     if(adminRole) {
         if(!_.find(adminRole.permissions, p => p == permission.id)) {
             adminRole.permissions.push(permission._id)
-            await adminRole.save()
+            
+            let updatedRole = await adminRole.save()
+            nsqPublish('role.updated', updatedRole)
         }
     }
 }
@@ -23,7 +25,7 @@ export async function tryAddPermission(name: string): Promise<any> {
         })
         permission = await permission.save()
 
-        pubsub.publish('permission created', permission)
+        nsqPublish('permission.created', permission)
     }
 
     addPermissionToAdminRole(permission)
