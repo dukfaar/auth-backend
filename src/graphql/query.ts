@@ -9,6 +9,7 @@ type Query {
     me: User
 
     login(username: String!, password: String!, clientId: String!, clientSecret: String!): Token
+    clientlogin(clientId: String!, clientSecret: String!): Token
     refresh(refreshToken: String!, clientId: String!, clientSecret: String!): Token
 
     userByAccessToken(accessToken: String!): User

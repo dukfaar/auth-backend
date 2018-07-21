@@ -98,6 +98,44 @@ export default {
         return loginResult
     },
 
+    clientlogin: (root, params, source, options) => {
+        let request = new Request({
+            method: 'POST',
+            query: {},
+            headers: {
+                Authorization: 'Basic ' + Buffer.from(`${params.clientId}:${params.clientSecret}`).toString('base64'),
+                "Content-Type": 'application/x-www-form-urlencoded',
+                "transfer-encoding": '',
+                "content-length": 0
+            },
+            body: {
+                grant_type: 'client_credentials'
+            }
+        })
+        let response = new Response({})
+
+        let loginResult = getOAuthServer().token(request, response, {})
+
+        loginResult.then(console.log)
+
+        loginResult.then(result => {
+            nsqPublish('login.success', {
+                userId: result.userId,
+                accessToken: result.accessToken,
+                accessTokenExpiresAt: result.accessTokenExpiresAt
+            })
+        })
+        .catch(error => {
+            nsqPublish('login.failed', {
+                clientId: params.clientId,
+                clientSecret: params.clientSecret,
+                error: error
+            })
+        })
+
+        return loginResult
+    },
+
     refresh: (root, params, source, options) => {
         let request = new Request({
             method: 'POST',

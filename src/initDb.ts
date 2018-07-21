@@ -35,4 +35,36 @@ export default async () => {
         })
         initialClient = await initialClient.save()
     }
+
+    let initialClientUser = await User.findOne({username: 'initialClientId'}).exec()
+    if(!initialClientUser) {
+        initialClientUser = new User({
+            username: 'initialClientId', 
+            password: 'password is not used',
+            email: 'empty',
+            roles: [adminRole._id]
+        })
+        initialClientUser = await initialClientUser.save()
+    }
+
+    let cloudInternalClient = await Client.findOne({clientId: 'dukfaar-cloud-internal'}).exec()
+    if(!cloudInternalClient) {
+        cloudInternalClient = new Client({
+            clientId: 'dukfaar-cloud-internal',
+            clientSecret: 'i am a ninja cat',
+            grants: ['client_credentials']
+        })
+        cloudInternalClient = await cloudInternalClient.save()
+    }
+
+    let cloudInternalUser = await User.findOne({username: 'dukfaar-cloud-internal'}).exec()
+    if(!cloudInternalUser) {
+        cloudInternalUser = new User({
+            username: 'dukfaar-cloud-internal', 
+            password: 'password is not used',
+            email: 'empty',
+            roles: [adminRole._id]
+        })
+        cloudInternalUser = await cloudInternalUser.save()
+    }
 }
