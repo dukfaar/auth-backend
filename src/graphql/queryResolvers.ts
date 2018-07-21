@@ -116,8 +116,6 @@ export default {
 
         let loginResult = getOAuthServer().token(request, response, {})
 
-        loginResult.then(console.log)
-
         loginResult.then(result => {
             nsqPublish('login.success', {
                 userId: result.userId,
