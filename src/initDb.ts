@@ -29,8 +29,8 @@ export default async () => {
     tryAddPermission('mutation.registerQuery')
     tryAddPermission('mutation.registerSubscription')
 
-    await createCrudPermissionsForType("client", ["_id","clientId"])
-    await createCrudPermissionsForType("permission", ["_id","name","clientSecret", "grants"])
+    await createCrudPermissionsForType("client", ["_id","clientId", "clientSecret", "grants"])
+    await createCrudPermissionsForType("permission", ["_id","name"])
     await createCrudPermissionsForType("role", ["_id","name", "permissions"])
     await createCrudPermissionsForType("token", ["_id","accessToken","accessTokenExpiresAt", "client", "clientId", "refreshToken","refreshTokenExpiresAt","user", "userId"])
     await createCrudPermissionsForType("user", ["_id","email", "username", "password", "roles"])
