@@ -6,15 +6,11 @@ import { crudFunctionNames } from './crudFunctionNames'
 import { nsqPublish } from 'backend-utilities'
 
 async function addPermissionToAdminRole(permission) {
-    let adminRole:any = await Role.findOne({name: 'admin'}).exec()
-    if(adminRole) {
-        if(!_.find(adminRole.permissions, p => p == permission.id)) {
-            adminRole.permissions.push(permission._id)
-            
-            let updatedRole = await adminRole.save()
-            nsqPublish('role.updated', updatedRole)
-        }
-    }
+    return Role.findOneAndUpdate({name: 'admin'}, {$push: {permissions: permission.id}}).exec()
+    .then(role => {
+        nsqPublish('role.updated', role)
+        return role
+    })
 }
 
 export async function tryAddPermission(name: string): Promise<any> {
@@ -26,10 +22,10 @@ export async function tryAddPermission(name: string): Promise<any> {
         permission = await permission.save()
 
         nsqPublish('permission.created', permission)
-    }
 
-    addPermissionToAdminRole(permission)
-     
+        addPermissionToAdminRole(permission)
+    }
+   
     return permission
 }
 
