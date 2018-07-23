@@ -2,7 +2,7 @@ import { hash } from 'bcryptjs'
 
 import { User, Role, Permission, Client } from './model'
 
-import { tryAddPermission } from './util'
+import { tryAddPermission, createCrudPermissionsForType } from './util'
 
 export default async () => {
     let adminRole = await Role.findOne({name: 'admin'}).exec()
@@ -28,6 +28,12 @@ export default async () => {
     tryAddPermission('mutation.registerMutation')
     tryAddPermission('mutation.registerQuery')
     tryAddPermission('mutation.registerSubscription')
+
+    await createCrudPermissionsForType("client", ["_id","clientId"])
+    await createCrudPermissionsForType("permission", ["_id","name","clientSecret", "grants"])
+    await createCrudPermissionsForType("role", ["_id","name", "permissions"])
+    await createCrudPermissionsForType("token", ["_id","accessToken","accessTokenExpiresAt", "client", "clientId", "refreshToken","refreshTokenExpiresAt","user", "userId"])
+    await createCrudPermissionsForType("user", ["_id","email", "username", "password", "roles"])
 
     let initialClient = await Client.findOne({clientId: 'initialClientId'}).exec()
     if(!initialClient) {
@@ -70,4 +76,6 @@ export default async () => {
         })
         cloudInternalUser = await cloudInternalUser.save()
     }
+
+
 }
