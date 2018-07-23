@@ -15,7 +15,8 @@ import {
 } from '../model'
 
 import {
-    createCrudPermissionsForType
+    createCrudPermissionsForType,
+    tryAddPermission
 } from '../util'
 
 import {
@@ -43,8 +44,26 @@ export default {
     deleteRole: (value, params) => roleHelper.delete(params),
 
     registerTypeForPermissions: (value, params, context):Promise<any> => {
-        requirePermission(context.userPermissions, 'registerTypeForPermissions')
+        requirePermission(context.userPermissions, 'mutation.registerTypeForPermissions')
 
         return createCrudPermissionsForType(params.name, params.fields)
-    }
+    },
+
+    registerQuery: (value, params, context) => {
+        requirePermission(context.userPermissions, 'mutation.registerQuery')
+
+        return tryAddPermission(`query.${params.name}`)
+    },
+
+    registerMutation: (value, params, context) => {
+        requirePermission(context.userPermissions, 'mutation.registerMutation')
+
+        return tryAddPermission(`mutation.${params.name}`)
+    },
+
+    registerSubscription: (value, params, context) => {
+        requirePermission(context.userPermissions, 'mutation.registerSubscription')
+
+        return tryAddPermission(`subscription.${params.name}`)
+    },
 }  

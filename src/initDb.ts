@@ -24,7 +24,10 @@ export default async () => {
         adminUser = await adminUser.save()
     }
 
-    tryAddPermission('registerTypeForPermissions')
+    tryAddPermission('mutation.registerTypeForPermissions')
+    tryAddPermission('mutation.registerMutation')
+    tryAddPermission('mutation.registerQuery')
+    tryAddPermission('mutation.registerSubscription')
 
     let initialClient = await Client.findOne({clientId: 'initialClientId'}).exec()
     if(!initialClient) {

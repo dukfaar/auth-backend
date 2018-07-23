@@ -17,5 +17,8 @@ type Mutation {
     deleteRole(id: ID!): Role
 
     registerTypeForPermissions(name: String!, fields: [String]!): [Permission]
+    registerQuery(name: String!): Permission
+    registerMutation(name: String!): Permission
+    registerSubscription(name: String!): Permission
 }
 `
