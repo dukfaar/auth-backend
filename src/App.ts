@@ -136,7 +136,7 @@ export class App {
 			Hostname: process.env.PUBLISHED_HOSTNAME || "auth-backend",
 			Port:process.env.PUBLISHED_PORT || this.port,
 			GraphQLHttpEndpoint: "/",
-			GraphQLSocketEndpoint: "/socket",
+			GraphQLSocketEndpoint: "/subscriptions",
 		})
 	}
 
