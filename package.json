@@ -10,16 +10,16 @@
     "build-docker": "docker build . -t dukfaar/auth-backend",
     "tsc": "tsc",
     "test": "mocha -r ts-node/register src/**/*.test.ts",
-    "dev": "cross-env PORT=3002 DB_HOST=localhost npm run start-dev",
+    "dev": "npm run start-dev",
     "start-dev": "tsc && npm start"
   },
   "author": "dukfaar <dukfaar@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "@types/bcryptjs": "^2.4.1",
-    "@types/ioredis": "^3.2.2",
-    "@types/mongoose": "^5.0.10",
-    "@types/node": "^9.6.7",
+    "@types/ioredis": "^3.2.14",
+    "@types/mongoose": "^5.2.6",
+    "@types/node": "^9.6.28",
     "@types/nsqjs": "^0.9.0",
     "apollo-link": "^1.2.1",
     "backend-utilities": "^1.5.1",
@@ -34,18 +34,18 @@
     "graphql-tools": "^2.24.0",
     "ioredis": "^3.2.2",
     "lodash": "^4.17.10",
-    "mongoose": "^5.0.16",
+    "mongoose": "^5.2.9",
     "node-cache": "^4.2.0",
     "nsqjs": "^0.10.1",
     "oauth2-server": "^3.0.0",
-    "subscriptions-transport-ws": "^0.9.8",
+    "subscriptions-transport-ws": "^0.9.14",
     "ts-node": "^5.0.1",
-    "typescript": "^2.8.3"
+    "typescript": "^2.9.2"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.0",
+    "@types/mocha": "^5.2.5",
     "chai": "^4.1.2",
-    "mocha": "^5.0.5",
-    "cross-env": "^5.1.5"
+    "cross-env": "^5.2.0",
+    "mocha": "^5.2.0"
   }
 }
