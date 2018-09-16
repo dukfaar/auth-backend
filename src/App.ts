@@ -33,6 +33,11 @@ import fetchFromCache from './fetchFromCache'
 
 import { getOAuthServer } from './oauthServer'
 
+import {
+	createCrudPermissionsForType,
+	tryAddPermission
+} from './util'
+
 export class App {
 	private expressApp
 	private expressServer
@@ -189,6 +194,38 @@ export class App {
 			})
 
 			this.publishServiceUp()
+
+			let registerQueryReader = nsqReaderFactory('registerQuery', 'authbackend')
+			registerQueryReader.connect()
+			registerQueryReader.on('message', msg => {
+				let data = msg.json()
+				tryAddPermission(`query.${data}`)
+				msg.finish()
+			})
+
+			let registerMutationReader = nsqReaderFactory('registerMutation', 'authbackend')
+			registerMutationReader.connect()
+			registerMutationReader.on('message', msg => {
+				let data = msg.json()
+				tryAddPermission(`mutation.${data}`)
+				msg.finish()
+			})
+
+			let registerSubscriptionReader = nsqReaderFactory('registerSubscription', 'authbackend')
+			registerSubscriptionReader.connect()
+			registerSubscriptionReader.on('message', msg => {
+				let data = msg.json()
+				tryAddPermission(`subscription.${data}`)
+				msg.finish()
+			})
+
+			let registerTypeReader = nsqReaderFactory('registerType', 'authbackend')
+			registerTypeReader.connect()
+			registerTypeReader.on('message', (msg:any) => {
+				let data = msg.json()
+				createCrudPermissionsForType(data.name, data.fields)
+				msg.finish()
+			})
 
 			let serviceUpReader = nsqReaderFactory('service.up', 'authbackend')
 			serviceUpReader.connect()
