@@ -13,15 +13,21 @@ export default async () => {
         adminRole = await adminRole.save()
     }
 
-    let adminUser = await User.findOne({username: 'admin'}).exec()
+    let adminUser:any = await User.findOne({username: 'admin'}).exec()
+    let adminPWhash = await hash('secretpassword', 10)
     if(!adminUser) {
         adminUser = new User({
             username: 'admin', 
-            password: await hash('secretpassword', 10),
+            password: adminPWhash,
             email: 'dukfaar@gmail.com',
             roles: [adminRole._id]
         })
         adminUser = await adminUser.save()
+    } else {
+        if(adminUser.password !== adminPWhash) {
+            adminUser.password = adminPWhash
+            adminUser = await adminUser.save()
+        }
     }
 
     tryAddPermission('mutation.registerTypeForPermissions')
