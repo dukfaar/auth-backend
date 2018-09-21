@@ -39,7 +39,7 @@ export default async () => {
     await createCrudPermissionsForType("permission", ["_id","name"])
     await createCrudPermissionsForType("role", ["_id","name", "permissions"])
     await createCrudPermissionsForType("token", ["_id","accessToken","accessTokenExpiresAt", "client", "clientId", "refreshToken","refreshTokenExpiresAt","user", "userId"])
-    await createCrudPermissionsForType("user", ["_id","email", "username", "password", "roles"])
+    await createCrudPermissionsForType("user", ["_id","email", "username", "password", "roles", "permissions"])
 
     let initialClient = await Client.findOne({clientId: 'initialClientId'}).exec()
     if(!initialClient) {
